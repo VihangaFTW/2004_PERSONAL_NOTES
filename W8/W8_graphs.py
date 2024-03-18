@@ -10,6 +10,7 @@ class Vertex:
         self.visited = False
         self.distance = 0 
         self.previous = None
+        self.incoming_edges = 0
         self.edges: list[None | Edge] = []
 
     def added_to_queue(self) -> None:
@@ -75,6 +76,8 @@ class Graph:
         for vertex in self.vertices:
             if vertex.get_id() ==  v1.get_id():
                 vertex.edges.append(Edge(v1,v2,weight,True))
+                #* needed for kahn's algorithm
+                v2.incoming_edges += 1
 
     def show_edges(self) -> str:
         all_edges = ""
@@ -82,6 +85,103 @@ class Graph:
             for edge in vertex.edges:
                 all_edges += str(edge) + "\n"
         return all_edges
+    
+    #* Week 4: Kahn's alogorithm topological sort
+
+    def remove_edge(self, u: Vertex, v: Vertex):
+        '''
+        #! horrible implementation but works
+        '''
+        # traverse through vertices
+        for vertex in self.vertices:
+            # first vertex found
+            if vertex is u:
+                # traverse to find other vertex of edge
+                for edge in vertex.edges:
+                    # other vertex of edge found so remove the Edge object from start vertex 
+                    if edge.v is  v and not edge.directed:
+                        #? need to remove the Edge object from end vertex if undirected edge
+                        for v_edge in v.edges:
+                            if v_edge.u is v:
+                                v.edges.remove(v_edge)
+                    vertex.edges.remove(edge)
+                    return
+    
+    def topological_sort_kahn(self):
+        '''
+        :prereq: Graph must be a DAG.
+        :time: O(V+E) as queue stores every vertex and each edge is visited once
+        :space: O(V+E)
+        where V is the total number of vertices and E the total number of edges in the graph
+        '''
+        sorted_vertices = []
+    
+        # # queue to store all vertices without incoming edges
+        to_process = CircularQueue(len(self.vertices))
+        starting_vertices = []
+        
+        for vertex in self.vertices:
+            if vertex.incoming_edges == 0:
+                starting_vertices.append(vertex)
+
+        # If there are no starting vertices, the graph contains a cycle
+        if not starting_vertices:
+            raise ValueError("Graph contains a cycle!")
+        
+        for vertex in starting_vertices:
+            to_process.append(vertex)
+        
+        while to_process:
+            current_vertex = to_process.serve()
+            sorted_vertices.append(current_vertex.get_id())
+            # go thru each outgoing edge of current vertex
+            for edge in current_vertex.edges:
+                edge.v.incoming_edges -= 1
+                if edge.v.incoming_edges == 0:
+                    to_process.append(edge.v)
+                    
+        # # check for cycles
+        for vertex in self.vertices:
+            if vertex.incoming_edges > 0:
+                raise ValueError("Graph contains a cycle!")
+        
+        # reset incoming edges attribute of all vertices to 0
+        self._reset_all_incoming_edges()
+        return sorted_vertices
+
+    
+    def _reset_all_incoming_edges(self):
+        """
+        :time comp: O(V) where V is the total number of vertices in the graph.
+        :space comp: total and aux is O(1) as we just traverse through self.vertices
+        """
+        for vertex in self.vertices:
+            vertex.incoming_edges = 0
+
+
+    def topological_sort_dfs(self):
+        stack = LinkedStack()
+
+        for vertex in self.vertices:
+            if not vertex.visited:
+                self._topological_sort_dfs_aux(vertex,stack)
+
+        sorted_vertices = [None] * len(self.vertices)
+
+        for i in range(len(self.vertices)):
+            sorted_vertices[i] = stack.pop().get_id()
+        
+        return sorted_vertices
+
+
+
+    def _topological_sort_dfs_aux(self,u:Vertex, stack: LinkedStack):
+        u.visited = True
+        for edge in u.edges:
+            if edge.v.visited == False:
+                self._topological_sort_dfs_aux(edge.v, stack)
+
+        stack.push(u)
 
 
     def bfs(self, source: Vertex) -> list[Vertex]:
@@ -196,23 +296,37 @@ class Graph:
 
 
 if __name__ == "__main__":
-    v1 = Vertex(1)
-    v2 = Vertex(2)
-    v3 = Vertex(3)
-    v4 = Vertex(4)
-    v5 = Vertex(5)
-    v6 = Vertex(6)
-    v7 = Vertex(7)
-    v8 = Vertex(8)
-    my_graph = Graph([v1,v2,v3,v4,v5,v6,v7])
-    my_graph.add_undirected_edge(v1,v2)
-    my_graph.add_undirected_edge(v1,v3)
-    my_graph.add_undirected_edge(v2,v4)
-    my_graph.add_undirected_edge(v2,v5)
-    my_graph.add_undirected_edge(v3,v6)
-    my_graph.add_undirected_edge(v3,v7)
-    my_graph.add_directed_edge(v6,v8)
-    my_graph.add_undirected_edge(v8,v7)
+    v1 = Vertex("FIT1045")
+    v2 = Vertex("MAT1830")
+    v3 = Vertex("FIT1008")
+    v4 = Vertex("FIT2014")
+    v5 = Vertex("FIT2099")
+    v6 = Vertex("FIT2004")
+    v7 = Vertex("FIT3155")
+    v8 = Vertex("FYP")
+    my_graph = Graph([v1,v2,v3,v4,v5,v6,v7,v8])
+    my_graph.add_directed_edge(v1,v3)
+    my_graph.add_directed_edge(v2,v3)
+    my_graph.add_directed_edge(v3,v6)
+    my_graph.add_directed_edge(v3,v5)
+    my_graph.add_directed_edge(v3,v4)
+    my_graph.add_directed_edge(v6,v7)
+    my_graph.add_directed_edge(v7,v8)
+    # my_graph.add_undirected_edge(v2,v4)
+    # my_graph.add_undirected_edge(v2,v5)
+    # my_graph.add_undirected_edge(v3,v6)
+    # my_graph.add_undirected_edge(v3,v7)
+    # my_graph.add_directed_edge(v6,v8)
+    # my_graph.add_undirected_edge(v8,v7)
     #print(my_graph.dfs(v1))
     #print(my_graph.dfs_recur(v1))
-    print(my_graph.shortest_distance_bfs(v1,v4))
+    #print(my_graph.shortest_distance_bfs(v1,v4))
+
+    # #* test removing edges
+    # my_graph.remove_edge(v1,v2)
+    # print(my_graph.show_edges())
+
+    #* testing kahn sort
+    print(my_graph.topological_sort_kahn())
+    print("==========dfs topological sort============")
+    print(my_graph.topological_sort_dfs())
