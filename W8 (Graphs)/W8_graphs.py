@@ -106,6 +106,8 @@ class Graph:
                                 v.edges.remove(v_edge)
                     vertex.edges.remove(edge)
                     return
+                
+        raise ValueError("Edge does not exist!")
     
     def topological_sort_kahn(self):
         '''
