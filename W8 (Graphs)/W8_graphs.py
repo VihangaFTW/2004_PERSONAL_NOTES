@@ -1,5 +1,7 @@
 from my_queue import CircularQueue
 from my_stack import LinkedStack
+from my_heap import MinHeap
+from math import inf
 # adjacency list representation of graphs
 
 class Vertex:
@@ -8,10 +10,11 @@ class Vertex:
         # for traversal
         self.discovered = False
         self.visited = False
-        self.distance = 0 
+        self.distance = inf
         self.previous = None
         self.incoming_edges = 0
         self.edges: list[None | Edge] = []
+        self.array_index = -1
 
     def added_to_queue(self) -> None:
         self.discovered =  True
@@ -160,6 +163,14 @@ class Graph:
         for vertex in self.vertices:
             vertex.incoming_edges = 0
 
+    def _reset_all_distances(self):
+        for vertex in self.vertices:
+            vertex.distance = inf
+
+    def _reset_all_array_indices(self):
+        for vertex in self.vertices:
+            vertex.array_index = -1
+
 
     def topological_sort_dfs(self):
         stack = LinkedStack()
@@ -187,6 +198,7 @@ class Graph:
 
 
     def bfs(self, source: Vertex) -> list[Vertex]:
+        source.distance = 0
         # queue for discovered vertices
         discovered = CircularQueue(len(self.vertices))
         visited = []
@@ -208,6 +220,7 @@ class Graph:
     
 
     def dfs(self, source: Vertex) -> list:
+        source.distance = 0
         # queue for discovered vertices
         discovered = LinkedStack(len(self.vertices))
         visited = []
@@ -230,6 +243,7 @@ class Graph:
 
 #!=================================== Recursive dfs ==========================================
     def dfs_recur(self,source:Vertex) ->list:
+        source.distance = 0
         return self._dfs_recur_aux(source,[])
     
     def _dfs_recur_aux(self, current_vertex:Vertex, visited_lst: list) -> list:
@@ -255,6 +269,7 @@ class Graph:
         : param target: the ending vertex of search
         : return: a formatted string with the shortest distance along with possible path taken
         '''
+        source.distance = 0
         # queue for discovered vertices
         discovered = CircularQueue(len(self.vertices))
         #set default target vertex to source
@@ -288,6 +303,56 @@ class Graph:
             prev_vertex = prev_vertex.previous
         
         return f'Shortest distance: {target_distance[1]}\nPath: {backtrack_path[::-1]}'
+    
+    def shortest_distance_dijkstra(self, start_vertex: Vertex, end_vertex: Vertex) -> str:
+        '''
+        This method calculates the shortest distance between two vertices in the graph using Dijkstra's algorithm which is
+        based on a modified BFS with a priority queue (min heap) instead of a queue.
+        :prereq: Graph does not have negative edges.
+        : start_vertex:- starting vertex of search
+        : end_vertex: ending vertex of search.
+        : returns a formatted string detailing the shortest distance between the given vertices along with the path to take.
+        : time comp:- O((V+E) log V) ???
+        : space comp: aux is O(V) as we need to store all the vertices in the heap.
+                      total is O(V).
+        '''
+        # reset instance attributes
+        self._reset_all_array_indices()
+        self._reset_all_distances()
+        
+        start_vertex.distance = 0
+        discovered = MinHeap(len(self.vertices))
+        discovered.add(0,start_vertex)
+        while discovered:
+            current_vertex = discovered.get_min()[1]
+            current_vertex.visited  = True
+            if current_vertex == end_vertex:
+                break
+            for edge in current_vertex.edges:
+                vertex = edge.v
+                #* the edge can either be a new edge (undiscovered) or an edge that is in the heap (not visited yet)
+                if not vertex.discovered:
+                    vertex.discovered = True
+                    new_distance = current_vertex.distance + edge.w
+                    vertex.distance = new_distance
+                    vertex.previous = current_vertex
+                    discovered.add(new_distance,vertex)
+                elif not vertex.visited:
+                    updated_distance = current_vertex.distance + edge.w
+                    if updated_distance < vertex.distance:
+                        vertex.distance = updated_distance
+                        vertex.previous = current_vertex
+                        discovered.update(vertex,updated_distance)
+
+        shortest_path = []
+        shortest_path.append(end_vertex.id)
+        prev_vertex = end_vertex.previous
+        while prev_vertex:
+            shortest_path.append(prev_vertex.id)
+            prev_vertex = prev_vertex.previous
+
+        return f'Shortest distance from {start_vertex.id} to {end_vertex.id} is {end_vertex.distance}\
+            \nPath taken: {shortest_path[::-1]}' #? #@%* space comp
 
 
     def __str__(self):
@@ -298,22 +363,22 @@ class Graph:
 
 
 if __name__ == "__main__":
-    v1 = Vertex("FIT1045")
-    v2 = Vertex("MAT1830")
-    v3 = Vertex("FIT1008")
-    v4 = Vertex("FIT2014")
-    v5 = Vertex("FIT2099")
-    v6 = Vertex("FIT2004")
-    v7 = Vertex("FIT3155")
-    v8 = Vertex("FYP")
-    my_graph = Graph([v1,v2,v3,v4,v5,v6,v7,v8])
-    my_graph.add_directed_edge(v1,v3)
-    my_graph.add_directed_edge(v2,v3)
-    my_graph.add_directed_edge(v3,v6)
-    my_graph.add_directed_edge(v3,v5)
-    my_graph.add_directed_edge(v3,v4)
-    my_graph.add_directed_edge(v6,v7)
-    my_graph.add_directed_edge(v7,v8)
+    # v1 = Vertex("FIT1045")
+    # v2 = Vertex("MAT1830")
+    # v3 = Vertex("FIT1008")
+    # v4 = Vertex("FIT2014")
+    # v5 = Vertex("FIT2099")
+    # v6 = Vertex("FIT2004")
+    # v7 = Vertex("FIT3155")
+    # v8 = Vertex("FYP")
+    # my_graph = Graph([v1,v2,v3,v4,v5,v6,v7,v8])
+    # my_graph.add_directed_edge(v1,v3)
+    # my_graph.add_directed_edge(v2,v3)
+    # my_graph.add_directed_edge(v3,v6)
+    # my_graph.add_directed_edge(v3,v5)
+    # my_graph.add_directed_edge(v3,v4)
+    # my_graph.add_directed_edge(v6,v7)
+    # my_graph.add_directed_edge(v7,v8)
     # my_graph.add_undirected_edge(v2,v4)
     # my_graph.add_undirected_edge(v2,v5)
     # my_graph.add_undirected_edge(v3,v6)
@@ -329,6 +394,29 @@ if __name__ == "__main__":
     # print(my_graph.show_edges())
 
     #* testing kahn sort
-    print(my_graph.topological_sort_kahn())
-    print("==========dfs topological sort============")
-    print(my_graph.topological_sort_dfs())
+    #print(my_graph.topological_sort_kahn())
+    # print("==========dfs topological sort============")
+    # print(my_graph.topological_sort_dfs())
+
+
+    #* testing dijkstra
+    v1 = Vertex("A")
+    v2 = Vertex("B")
+    v3 = Vertex("C")
+    v4 = Vertex("D")
+    v5 = Vertex("E")
+    graph2 = Graph([v1,v2,v3,v4,v5])
+    # add edges
+    graph2.add_directed_edge(v1,v3,5)
+    graph2.add_directed_edge(v1,v2,10)
+    graph2.add_directed_edge(v3,v2,3)
+    graph2.add_directed_edge(v3,v4,9)
+    graph2.add_directed_edge(v3,v5,2)
+    graph2.add_directed_edge(v1,v3,5)
+    graph2.add_directed_edge(v2,v3,2)
+    graph2.add_directed_edge(v4,v5,4)
+    graph2.add_directed_edge(v5,v4,6)
+    graph2.add_directed_edge(v2,v4,1)
+    print(graph2.shortest_distance_dijkstra(v1,v2))
+    
+
