@@ -200,8 +200,8 @@ if __name__ == "__main__":
     arr = [234,254,2334,6,4,23,345345]
     arr2 = [16,7,4,1,12]
     #print(my_radix_sort(arr2,2))
-    arr3 = ["apple", "pple", "ple", "le", "e"]
-    print(radix_sort_words_by_letter(arr3))
+    arr3 = ["abd", "c", "abc", "aac", "bc","bac"]
+    print(radix_sort_words_by_size(arr3))
     
     
 

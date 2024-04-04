@@ -84,8 +84,7 @@ def hoares_quickSort(arr, low, high):
 def dutch_flag_partition(arr, low, high, pivot):
     '''
     Useful when there are many identical elements or has a skewed distribution around the pivot, 
-    this technique can significantly reduce the number of recursive calls and comparisons, 
-    improving performance by avoiding unnecessary swaps between elements equal to the pivot.
+    this technique can significantly reduce the number of recursive calls and comparisons,  
     '''
 
     smaller = low  # Index for elements smaller than the pivot
@@ -101,6 +100,8 @@ def dutch_flag_partition(arr, low, high, pivot):
             pointer += 1
         else:  # arr[equal] > pivot
             arr[pointer], arr[larger] = arr[larger], arr[pointer]
+            #* we dont increment pointer as we dont know whether the new element 
+            #* in pointer place after swap is smaller/equals/greater than pivot
             larger -= 1
     
     return smaller, larger  # Return indices for elements smaller and larger than the pivot
@@ -149,7 +150,9 @@ def vingu_dutch_quicksort(arr,low,high):
 
 def vingu_hoares_partition(arr,low,high):
     pivot = arr[low]
+    #* i is initiliazed to low-1 so that the first element is not skipped
     i = low-1
+    #* j is initiliazed to high+1 so that the last element is not skipped
     j = high+1
 
     while True:
@@ -170,8 +173,19 @@ def vingu_hoares_quicksort(arr,low,high):
         vingu_hoares_quicksort(arr,partition_index+1,high)
     return arr
 
+def naive_quick_select(arr,low,high,pivot):
+    smaller = low
+    pointer = low
+    bigger = high
+
+    while pointer <= bigger:
+        if arr[pointer] < pivot:
+            arr[smaller],
+
+
+
 if __name__ == "__main__":
-    arr = [2,6,2,4,10,8]
+    arr = [2,6,2,4,10,8,4,6]
     arr2 = []
-    print(vingu_hoares_quicksort(arr,0,len(arr)-1))
+    print(vingu_hoares_quicksort(arr,len(arr)-1, 0))
     

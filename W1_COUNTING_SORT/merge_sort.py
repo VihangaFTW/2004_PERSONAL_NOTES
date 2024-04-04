@@ -9,7 +9,7 @@ def merge_sort(arr):
     return merge(merge_sort(left_half), merge_sort(right_half))
 
 def merge(left, right):
-    merged = []
+    merged = []  #? O(N) after merge
     left_index = 0
     right_index = 0
 
@@ -21,10 +21,14 @@ def merge(left, right):
             merged.append(right[right_index])
             right_index += 1
 
-    merged.extend(left[left_index:])
-    merged.extend(right[right_index:])
+    # merged.extend(left[left_index:])
+    # merged.extend(right[right_index:])
+    for i in range(left_index,len(left)):
+        merged.append(left[i])
+    for i in range(right_index,len(right)):
+        merged.append(right[i])
 
-    return merge
+    return merged
 
 #!=================================== Practice ============================================
 
@@ -53,8 +57,8 @@ def my_merge(left_arr, right_arr):
     This helper function for merge sort combines two sorted arrays into one sorted array.
     #* As long as the merge function moves equal “left” elements before “right” elements, it will be stable.
     : prereq: both the input arrays must be sorted
-    : param right_arr: the right section of the arrays to be combined
-    : param left_arr: the left section of the arrays to be combined
+    : param right_arr: the right section of the arrays to be combined [1...R]
+    : param left_arr: the left section of the arrays to be combined [1....L]
     : return: a single sorted array consisting of elements from both input arrays
     : time complexity:-  L and R are sizes of the left and right arrays respectively.
     best case: O(1) when the input is a list containing one element
@@ -65,18 +69,30 @@ def my_merge(left_arr, right_arr):
     left_index = 0
     right_index = 0
 
-    merged = []
+    merged = [None] * (len(left_arr) + len(right_arr))
+    index = 0
 
-    while left_index < len(left_arr) and right_index < len(right_arr):  #? O(max(L,R))
+    while left_index < len(left_arr) and right_index < len(right_arr):  #? O(L+R)
         if left_arr[left_index] <= right_arr[right_index]:
-            merged.append(left_arr[left_index])
+            merged[index] = (left_arr[left_index])
+            index += 1
             left_index += 1
         else:
-            merged.append(right_arr[right_index])
+            merged[index] = right_arr[right_index]
+            index += 1
             right_index += 1
 
-    merged.extend(left_arr[left_index:])  #? O(L)
-    merged.extend(right_arr[right_index:]) #? O(R)
+    
+    for i in range(left_index, len(left_arr)):  #? O(L)
+        merged[index] = left_arr[i]
+        index += 1
+
+    for i in range(right_index, len(right_arr)):  #? O(R)
+        merged[index] =  right_arr[i]
+        index += 1
+    
+    # merged.extend(left_arr[left_index:])  #? O(L)
+    # merged.extend(right_arr[right_index:]) #? O(R)
 
 
     return merged
