@@ -17,7 +17,7 @@ def findPath(maze, start, destination):
     
     # make sure start and destination are open cells 
     if maze[start[0]][start[1]] == 1 or maze[destination[0]][destination[1]] ==  1:
-        return "Start and destination cannot be blocked cells!"
+        return False
     
     # memoization array for storing local optimals
     memo = [None] * len(maze)
@@ -62,4 +62,8 @@ def findPath(maze, start, destination):
 
 
 if __name__ == '__main__':
-    print(findPath([[0,0,0], [1,1,0],[1,1,0],[1,1,0], [0, 0,0],[0, 1,1]], [0,0], [5,1]))
+    print(findPath([[0, 0, 0, 0, 0],
+            [0, 1, 1, 1, 0],
+            [0, 1, 0, 0, 0],
+            [0, 0, 1, 1, 1],
+            [0, 0, 0, 0, 0]], [0,0], [4,4]))

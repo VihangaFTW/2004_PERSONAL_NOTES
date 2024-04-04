@@ -2,6 +2,7 @@ from my_queue import CircularQueue
 from my_stack import LinkedStack
 from my_heap import MinHeap
 from math import inf
+from quick_sort_edges import quick_sort_edges
 # adjacency list representation of graphs
 
 class Vertex:
@@ -119,6 +120,7 @@ class Graph:
         :space: O(V+E)
         where V is the total number of vertices and E the total number of edges in the graph
         '''
+        self._reset_attributes()
         sorted_vertices = []
     
         # # queue to store all vertices without incoming edges
@@ -151,28 +153,12 @@ class Graph:
                 raise ValueError("Graph contains a cycle!")
         
         # reset incoming edges attribute of all vertices to 0
-        self._reset_all_incoming_edges()
+        self._reset_attributes()
         return sorted_vertices
-
-    
-    def _reset_all_incoming_edges(self):
-        """
-        :time comp: O(V) where V is the total number of vertices in the graph.
-        :space comp: total and aux is O(1) as we just traverse through self.vertices
-        """
-        for vertex in self.vertices:
-            vertex.incoming_edges = 0
-
-    def _reset_all_distances(self):
-        for vertex in self.vertices:
-            vertex.distance = inf
-
-    def _reset_all_array_indices(self):
-        for vertex in self.vertices:
-            vertex.array_index = -1
 
 
     def topological_sort_dfs(self):
+        self._reset_attributes()
         stack = LinkedStack()
 
         for vertex in self.vertices:
@@ -198,6 +184,7 @@ class Graph:
 
 
     def bfs(self, source: Vertex) -> list[Vertex]:
+        self._reset_attributes()
         source.distance = 0
         # queue for discovered vertices
         discovered = CircularQueue(len(self.vertices))
@@ -220,6 +207,7 @@ class Graph:
     
 
     def dfs(self, source: Vertex) -> list:
+        self._reset_attributes()
         source.distance = 0
         # queue for discovered vertices
         discovered = LinkedStack(len(self.vertices))
@@ -243,6 +231,7 @@ class Graph:
 
 #!=================================== Recursive dfs ==========================================
     def dfs_recur(self,source:Vertex) ->list:
+        self._reset_attributes()
         source.distance = 0
         return self._dfs_recur_aux(source,[])
     
@@ -269,6 +258,7 @@ class Graph:
         : param target: the ending vertex of search
         : return: a formatted string with the shortest distance along with possible path taken
         '''
+        self._reset_attributes()
         source.distance = 0
         # queue for discovered vertices
         discovered = CircularQueue(len(self.vertices))
@@ -312,15 +302,15 @@ class Graph:
         : start_vertex:- starting vertex of search
         : end_vertex: ending vertex of search.
         : returns a formatted string detailing the shortest distance between the given vertices along with the path to take.
-        : time comp:- O((V+E) log V) ???
+        : time comp:- O(V Log V + E log V) ???
         : space comp: aux is O(V) as we need to store all the vertices in the heap.
                       total is O(V).
         '''
         # reset instance attributes
-        self._reset_all_array_indices()
-        self._reset_all_distances()
+        self._reset_attributes()
         
         start_vertex.distance = 0
+        start_vertex.discovered = True
         discovered = MinHeap(len(self.vertices))
         discovered.add(0,start_vertex)
         while discovered:
@@ -354,7 +344,80 @@ class Graph:
         return f'Shortest distance from {start_vertex.id} to {end_vertex.id} is {end_vertex.distance}\
             \nPath taken: {shortest_path[::-1]}' #? #@%* space comp
 
+    def _reset_attributes(self):
+        for vertex in self.vertices:
+            vertex.incoming_edges = 0
+            vertex.distance = inf
+            vertex.discovered = False
+            vertex.visited = False
+            self.array_index = -1
+            self.previous = None
+    
+    def find_MST_Prim(self, start_vertex: Vertex) -> str:
+        """
+        This algorithm is used to find a minimum spanning tree for a connected weighted graph. 
+        This means it finds a subset of the edges that forms a tree that includes every vertex, 
+        where the total weight of all the edges in the tree is minimized.
+        : prereq: all edges are un-directed
+        : start_vertex:- starting vertex of search (not necessary but easier to visualize)
+        : returns a formatted string showing a set of the vertices making up the minimum spanning tree. Answers might not be unique.
+        : time comp:- O(V Log V + E log V)
+        : space comp: aux is O(V) as we need to store all the vertices in the heap.
+                      total is O(V).
+        """
+    
+        # reset instance attributes
+        self._reset_attributes()
+        
+        start_vertex.distance = 0
+        start_vertex.discovered = True
+        discovered = MinHeap(len(self.vertices))
+        visited = []
 
+        discovered.add(0,start_vertex)
+        while discovered:
+            current_vertex = discovered.get_min()[1]
+            current_vertex.visited  = True
+            visited.append(current_vertex.id)
+            for edge in current_vertex.edges:
+                vertex = edge.v
+                #* the edge can either be a new edge (undiscovered) or an edge that is in the heap (not visited yet)
+                if not vertex.discovered:
+                    vertex.discovered = True
+                    new_distance = edge.w
+                    vertex.distance = new_distance
+                    vertex.previous = current_vertex
+                    discovered.add(new_distance,vertex)
+                elif not vertex.visited:
+                    updated_distance =  edge.w
+                    if updated_distance < vertex.distance:
+                        vertex.distance = updated_distance
+                        vertex.previous = current_vertex
+                        discovered.update(vertex,updated_distance)
+        return f'Minimum Spanning Tree consists of these vertices {visited}' #? #@%* space comp
+    
+    
+    def find_MST_Kruskal(self, start_vertex: Vertex) -> str:
+        pass
+        # edges: list[Edge] = []
+        
+        # # retrieve all edges
+        # for vertex in self.vertices: #? O(V+E)
+        #     for edge in vertex.edges:
+        #         edges.append(edge)
+
+        # # sort the edges
+        # quick_sort_edges(edges,0,len(edges)-1) #? assume O(E log E) worst case [quick sort+ quick select + median of medians]
+
+        # # find if u and v are in the same tree
+        # vertices_set = set()
+        # for edge in edges:
+            
+
+    
+ 
+    
+    
     def __str__(self):
         return_string = ""
         for vertex in self.vertices:
@@ -400,23 +463,38 @@ if __name__ == "__main__":
 
 
     #* testing dijkstra
+    # v1 = Vertex("A")
+    # v2 = Vertex("B")
+    # v3 = Vertex("C")
+    # v4 = Vertex("D")
+    # v5 = Vertex("E")
+    # graph2 = Graph([v1,v2,v3,v4,v5])
+    # # add edges
+    # graph2.add_directed_edge(v1,v3,5)
+    # graph2.add_directed_edge(v1,v2,10)
+    # graph2.add_directed_edge(v3,v2,3)
+    # graph2.add_directed_edge(v3,v4,9)
+    # graph2.add_directed_edge(v3,v5,2)
+    # graph2.add_directed_edge(v1,v3,5)
+    # graph2.add_directed_edge(v2,v3,2)
+    # graph2.add_directed_edge(v4,v5,4)
+    # graph2.add_directed_edge(v5,v4,6)
+    # graph2.add_directed_edge(v2,v4,1)
+    # print(graph2.shortest_distance_dijkstra(v1,v2))
+    
+    #* test Prim
     v1 = Vertex("A")
     v2 = Vertex("B")
     v3 = Vertex("C")
     v4 = Vertex("D")
     v5 = Vertex("E")
     graph2 = Graph([v1,v2,v3,v4,v5])
-    # add edges
-    graph2.add_directed_edge(v1,v3,5)
-    graph2.add_directed_edge(v1,v2,10)
-    graph2.add_directed_edge(v3,v2,3)
-    graph2.add_directed_edge(v3,v4,9)
-    graph2.add_directed_edge(v3,v5,2)
-    graph2.add_directed_edge(v1,v3,5)
-    graph2.add_directed_edge(v2,v3,2)
-    graph2.add_directed_edge(v4,v5,4)
-    graph2.add_directed_edge(v5,v4,6)
-    graph2.add_directed_edge(v2,v4,1)
-    print(graph2.shortest_distance_dijkstra(v1,v2))
+    graph2.add_undirected_edge(v1,v2,6)
+    graph2.add_undirected_edge(v1,v3,5)
+    graph2.add_undirected_edge(v2,v3,3)
+    graph2.add_undirected_edge(v2,v4,8)
+    graph2.add_undirected_edge(v3,v4,9)
+    graph2.add_undirected_edge(v4,v5,9)
+    graph2.add_undirected_edge(v3,v5,2)
+    print(graph2.find_MST_Prim(v1))
     
-
