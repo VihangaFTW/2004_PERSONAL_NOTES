@@ -1,13 +1,17 @@
 from my_queue import CircularQueue
 
-def findPath(maze, start, destination):
+def findPath(maze: list[list[int]], start: list[int], destination: list[int]) -> bool|str:
     '''
     Function to find whether there is at least one valid path from start cell to destination cell.
     Blocked cells are represented by 1 and open cells are represented by 0.
     Uses a dynamic programming approach to find a valid path, starting from the end. Why? this ensures we are calcuating the 
     correct local optimal each step, we keep building up the local optimal iteratively using memoization until we hit the
     global optimal; the start cell. The result at the start cell (True/False) is the global optimal.
-    : time complexity:- O(row*col) where row and colum are the dimensions of the same
+    : maze: a 2D list representation of the maze
+    : start: a list [row,col] representing the coordinates of the start cell
+    : destination: a list [row,col] representing the coordinates of the end cell.
+    : return True if there is at least one valid path from start to destination. Otherwise False.
+    : time complexity:- O(row*col) where row and colum are the dimensions of the maze.
     '''
     # validate start and destination
     try:
